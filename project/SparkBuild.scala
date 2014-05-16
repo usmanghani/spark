@@ -298,7 +298,7 @@ object SparkBuild extends Build {
   val codahaleMetricsVersion = "3.0.0"
   val jblasVersion = "1.2.3"
   val jets3tVersion = if ("^2\\.[3-9]+".r.findFirstIn(hadoopVersion).isDefined) "0.9.0" else "0.7.1"
-  val jettyVersion = "8.1.14.v20131031"
+  val jettyVersion = "9.1.0.v20131115"
   val hiveVersion = "0.12.0"
   val parquetVersion = "1.3.2"
   val slf4jVersion = "1.7.5"

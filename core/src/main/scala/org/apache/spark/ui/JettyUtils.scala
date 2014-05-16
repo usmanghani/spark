@@ -183,16 +183,15 @@ private[spark] object JettyUtils extends Logging {
     @tailrec
     def connect(currentPort: Int): (Server, Int) = {
       val server = new Server(new InetSocketAddress(hostName, currentPort))
-      val pool = new QueuedThreadPool
+      val pool = server.getThreadPool.asInstanceOf[QueuedThreadPool]
       pool.setDaemon(true)
-      server.setThreadPool(pool)
       server.setHandler(collection)
 
       Try {
         server.start()
       } match {
         case s: Success[_] =>
-          (server, server.getConnectors.head.getLocalPort)
+          (server, currentPort)
         case f: Failure[_] =>
           server.stop()
           pool.stop()
