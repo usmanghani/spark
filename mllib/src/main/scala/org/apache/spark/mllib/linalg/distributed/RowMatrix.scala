@@ -416,10 +416,10 @@ class RowMatrix(
     mat
   }
 
-  /** Updates or verfires the number of rows. */
+  /** Updates or verifies the number of rows. */
   private def updateNumRows(m: Long) {
     if (nRows <= 0) {
-      nRows == m
+      nRows = m
     } else {
       require(nRows == m,
         s"The number of rows $m is different from what specified or previously computed: ${nRows}.")

@@ -41,7 +41,7 @@ import org.apache.spark.deploy.master.ui.MasterWebUI
 import org.apache.spark.metrics.MetricsSystem
 import org.apache.spark.scheduler.{EventLoggingListener, ReplayListenerBus}
 import org.apache.spark.ui.SparkUI
-import org.apache.spark.util.{AkkaUtils, Utils}
+import org.apache.spark.util.{AkkaUtils, SignalLogger, Utils}
 
 private[spark] class Master(
     host: String,
@@ -303,10 +303,11 @@ private[spark] class Master(
             appInfo.removeExecutor(exec)
             exec.worker.removeExecutor(exec)
 
+            val normalExit = exitStatus.exists(_ == 0)
             // Only retry certain number of times so we don't go into an infinite loop.
-            if (appInfo.incrementRetryCount < ApplicationState.MAX_NUM_RETRY) {
+            if (!normalExit && appInfo.incrementRetryCount < ApplicationState.MAX_NUM_RETRY) {
               schedule()
-            } else {
+            } else if (!normalExit) {
               logError("Application %s with ID %s failed %d times, removing it".format(
                 appInfo.desc.name, appInfo.id, appInfo.retryCount))
               removeApplication(appInfo, ApplicationState.FAILED)
@@ -754,12 +755,13 @@ private[spark] class Master(
   }
 }
 
-private[spark] object Master {
+private[spark] object Master extends Logging {
   val systemName = "sparkMaster"
   private val actorName = "Master"
   val sparkUrlRegex = "spark://([^:]+):([0-9]+)".r
 
   def main(argStrings: Array[String]) {
+    SignalLogger.register(log)
     val conf = new SparkConf
     val args = new MasterArguments(argStrings, conf)
     val (actorSystem, _, _) = startSystemAndActor(args.host, args.port, args.webUiPort, conf)
